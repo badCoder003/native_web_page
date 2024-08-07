@@ -36,12 +36,38 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WebViewScreen(modifier: Modifier = Modifier) {
-    var url by remember { mutableStateOf("https://live.healthassure.in/WebApp/#/flutterWeb?userSession=+tF/ydmW6x5X2veQEJk3WIlHPQLqKQ1Vk1shlA2MBT0NfD5fzqdsfIZfBi03WzPBYRQitL7fn+4u1kpNcvOI5ZaRUKbw9HKyAe8Ve7NRiqQ=&hideProfile=false") }
-    var webView: WebView? = null
-    var showButton by remember { mutableStateOf(true) }
-    var isLoading by remember { mutableStateOf(true) }
+    var showWebView by remember { mutableStateOf(false) }
+    var url by remember { mutableStateOf("") }
 
     Column(modifier = modifier.fillMaxSize()) {
+        if (showWebView) {
+            DynamicWebView(url = url)
+        } else {
+            // Centered Login Button
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = {
+                        url = "https://live.healthassure.in/WebApp/#/flutterWeb?userSession=+tF/ydmW6x5X2veQEJk3WIlHPQLqKQ1Vk1shlA2MBT0NfD5fzqdsfIZfBi03WzPBYRQitL7fn+4u1kpNcvOI5ZaRUKbw9HKyAe8Ve7NRiqQ=&hideProfile=false"
+                        showWebView = true // Show WebView after click
+                    },
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(text = "Login")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DynamicWebView(url: String) {
+    var isLoading by remember { mutableStateOf(true) }
+    var webView: WebView? = null
+
+    Column(modifier = Modifier.fillMaxSize()) {
         // WebView component
         AndroidView(
             factory = { context ->
@@ -71,42 +97,18 @@ fun WebViewScreen(modifier: Modifier = Modifier) {
                     }
                 }.also { webView = it }
             },
-            modifier = modifier.weight(1f).fillMaxSize()
+            update = { it.loadUrl(url) },
+            modifier = Modifier.weight(1f).fillMaxSize()
         )
 
-        // Load initial URL
-        LaunchedEffect(url) {
-            webView?.loadUrl(url)
-            isLoading = true // Show loading indicator while loading
-        }
-    }
-
-    // Centered Login Button
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        if (showButton) {
-            Button(
-                onClick = {
-                    url = "https://live.healthassure.in/WebApp/#/flutterWeb?userSession=+tF/ydmW6x5X2veQEJk3WIlHPQLqKQ1Vk1shlA2MBT0NfD5fzqdsfIZfBi03WzPBYRQitL7fn+4u1kpNcvOI5ZaRUKbw9HKyAe8Ve7NRiqQ=&hideProfile=false"
-                    webView?.loadUrl(url)
-                    showButton = false // Hide button after click
-                },
-                modifier = Modifier.padding(16.dp)
+        // Loading indicator
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = "Login")
+                CircularProgressIndicator()
             }
-        }
-    }
-
-    // Loading indicator
-    if (isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
         }
     }
 }
